@@ -7,6 +7,7 @@ import type { TranslateTextParams, TranslationConfig, TranslationMethod } from "
 import { deriveThinkingParams } from "./registry";
 import { translateCore, runReachabilityProbe } from "./pipeline";
 import { translationCache } from "@/app/lib/storage/indexedDBStorage";
+import { isLoopbackEndpoint } from "./services/shared";
 
 // Re-export everything for backwards compatibility
 export * from "./types";
@@ -72,10 +73,11 @@ export const testTranslationWithTimeout = async (
   };
   const controller = new AbortController();
   let timedOut = false;
+  const effectiveTimeoutSec = isLoopbackEndpoint(config?.url) ? Math.max(timeoutSec, 300) : timeoutSec;
   const timeout = setTimeout(() => {
     timedOut = true;
     controller.abort();
-  }, timeoutSec * 1000);
+  }, effectiveTimeoutSec * 1000);
   try {
     const error = await testTranslation(translationMethod, testParams, systemPrompt, userPrompt, controller.signal);
     return { error, timedOut };

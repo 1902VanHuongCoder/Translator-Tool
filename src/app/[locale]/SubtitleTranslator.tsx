@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useRef } from "react";
 import { Flex, Card, Button, Typography, Input, Upload, Form, Space, App, Tooltip, Segmented, Spin, Row, Col, Divider, Collapse, Alert, theme } from "antd";
-import { SettingOutlined, CopyOutlined, InboxOutlined, FileTextOutlined, ClearOutlined, FormatPainterOutlined, GlobalOutlined, ImportOutlined, SaveOutlined, ControlOutlined } from "@ant-design/icons";
+import { SettingOutlined, CopyOutlined, InboxOutlined, FileTextOutlined, ClearOutlined, FormatPainterOutlined, GlobalOutlined, ImportOutlined, SaveOutlined, ControlOutlined, DownloadOutlined, UploadOutlined } from "@ant-design/icons";
 import { useTranslations } from "next-intl";
 import { useCopyToClipboard } from "@/app/hooks/useCopyToClipboard";
 import useFileUpload from "@/app/hooks/useFileUpload";
@@ -27,6 +27,7 @@ import {
   type AssStyleConfig,
   type AssStylePreset,
 } from "@/app/lib/translation/formats/subtitle";
+import { createTranslationTemplate, parseReviewTexts, parseTranslationTemplate, replaceReviewText } from "./subtitleCues";
 import { LLM_MODELS } from "@/app/lib/translation";
 import { transformSkippingSoftFilled } from "@/app/lib/translation/softFill";
 import { delay } from "@/app/lib/translation/retry";
@@ -221,6 +222,7 @@ const SubtitleTranslator = () => {
   // 标错语种(主 targetLanguage 跟 translatedText 内容不匹配)
   const [translatedTextLang, setTranslatedTextLang] = useState<string | null>(null);
   const { customFileName, setCustomFileName, generateFileName } = useExportFilename("subtitle-translator");
+  const translationFileInputRef = useRef<HTMLInputElement>(null);
 
   // 源文本变化时只复位"源派生"的本地预览(extractedText)。译文结果及其元数据
   // (translatedText / translatedTextExt / needsBilingualSuffix / translatedTextLang)保留——
@@ -541,8 +543,7 @@ const SubtitleTranslator = () => {
       message.error(tSubtitle("unsupportedSub"));
       return;
     }
-    const { contentLines } = filterSubLines(splitTextIntoLines(sourceText), sourceFileType);
-    const extractedText = contentLines.join("\n").trim();
+    const extractedText = createTranslationTemplate(sourceText, sourceFileType);
 
     if (!extractedText) {
       message.error(tSubtitle("noExtractedText"));
@@ -551,6 +552,38 @@ const SubtitleTranslator = () => {
 
     setExtractedText(extractedText);
     copyToClipboard(extractedText, tSubtitle("textExtracted"));
+  };
+
+  const handleExportTextTemplate = () => {
+    if (!extractedText) return;
+    const baseName = (multipleFiles[0]?.name || "subtitle").replace(/\.[^.]+$/, "");
+    void downloadFile(extractedText, `${baseName}.translate.txt`);
+    message.success(t("fileExported", { fileName: `${baseName}.translate.txt` }));
+  };
+
+  const handleImportTranslatedText = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file || !sourceText.trim() || !sourceFileType || sourceFileType === "error") return;
+
+    void file.text().then((translatedTemplate) => {
+      const translatedByCue = parseTranslationTemplate(translatedTemplate);
+      const sourceCueCount = parseReviewTexts(sourceText, sourceFileType).length;
+      if (!translatedByCue || translatedByCue.size !== sourceCueCount || [...translatedByCue.keys()].some((index) => index > sourceCueCount)) {
+        message.error(tSubtitle("noExtractedText"));
+        return;
+      }
+
+      const reassembled = replaceReviewText(sourceText, sourceFileType, translatedByCue);
+      const sourceName = multipleFiles[0]?.name || "subtitle.srt";
+      const sourceExt = sourceName.split(".").pop()?.toLowerCase() || "srt";
+      setTranslatedText(reassembled);
+      setTranslatedTextExt(sourceExt);
+      setNeedsBilingualSuffix(false);
+      setTranslatedTextBilingual(false);
+      setTranslatedTextLang(targetLanguage);
+      message.success(t("fileExported", { fileName: sourceName }));
+    }).catch(() => message.error(tSubtitle("noExtractedText")));
   };
 
   // 作废上一轮翻译产物:Clear All 与换/删上传文件时调用,使译文结果、导出元数据、
@@ -648,9 +681,20 @@ const SubtitleTranslator = () => {
               </Button>
 
               {uploadMode === "single" && sourceText && (
-                <Button size="large" onClick={handleExtractText} icon={<FormatPainterOutlined />}>
-                  {t("extractText")}
-                </Button>
+                <>
+                  <Button size="large" onClick={handleExtractText} icon={<FormatPainterOutlined />}>
+                    {t("extractText")}
+                  </Button>
+                  {extractedText && (
+                    <Button size="large" onClick={handleExportTextTemplate} icon={<DownloadOutlined />} aria-label={t("exportFile")}>
+                      {t("exportFile")}
+                    </Button>
+                  )}
+                  <input ref={translationFileInputRef} type="file" accept=".txt,text/plain" hidden onChange={handleImportTranslatedText} />
+                  <Button size="large" onClick={() => translationFileInputRef.current?.click()} icon={<UploadOutlined />} aria-label={t("importSettingTooltip")}>
+                    {t("importSettingTooltip")}
+                  </Button>
+                </>
               )}
             </Flex>
 

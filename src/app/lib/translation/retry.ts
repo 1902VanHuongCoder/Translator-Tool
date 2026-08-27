@@ -17,7 +17,7 @@ const LLM_BACKED_MT_SERVICES: ReadonlySet<string> = new Set(["qwenMt", "translat
 export const DEFAULT_RETRY_COUNT = 3;
 /** 逐行/逐值翻译的默认并发。引擎与 JSON 工具各有一条循环,共用这个数。 */
 export const DEFAULT_BATCH_SIZE = 10;
-export const DEFAULT_RETRY_TIMEOUT = 180; // seconds — covers P99 of LLM thinking + typical batches; power users bump via Advanced Settings
+export const DEFAULT_RETRY_TIMEOUT = 300; // seconds — accommodates slow local reasoning models such as DeepSeek-R1
 
 export interface RetryConfig {
   retries: number;
@@ -100,7 +100,7 @@ export const isRetryableError = (error: unknown): boolean => {
   // Aborts are non-recoverable by retry:
   //   - AbortError: per-request timeout fired (createTimeoutController's
   //     setTimeout → controller.abort). Next attempt has its own fresh
-  //     timeout but will hit the same upstream slowness — at 180s × 3
+  //     timeout but will hit the same upstream slowness — at 300s × 3
   //     attempts that's 9 minutes of dead waiting before the user sees
   //     anything. Fast-fail instead.
   //   - "Translation aborted": shared abortControllerRef tripped (auth error

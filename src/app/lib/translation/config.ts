@@ -11,6 +11,11 @@ export const DEFAULT_USER_PROMPT = "Please respect the original meaning, maintai
 // to forget them.
 const PRESERVE_FIELDS: (keyof TranslationConfig)[] = ["apiKey", "url", "apiVersion", "region", "folderId"];
 
+const migrateLegacyLocalEndpoint = (url: unknown): unknown => {
+  if (typeof url !== "string") return url;
+  return url.replace(/^http:\/\/127\.0\.0(?:\.0)?(?=\/|$)/, "http://127.0.0.1:11434");
+};
+
 /**
  * Reset config to defaults while preserving user credential fields (apiKey, url, apiVersion, region, folderId).
  * Used by the explicit "Reset" button.
@@ -40,6 +45,11 @@ export const migrateConfig = (saved: TranslationConfig | undefined, defaults: Tr
   if (!defaults) return { ...(saved ?? {}) };
   if (!saved) return { ...defaults };
   const merged: Record<string, unknown> = { ...defaults, ...saved };
+  // Older builds persisted the malformed loopback host without Ollama's
+  // standard port. Repair it when the config is read so the UI cannot restore
+  // the broken value after the user edits the endpoint.
+  merged.url = migrateLegacyLocalEndpoint(merged.url);
+  if (merged.model === "qwen2.5:3b") merged.model = "deepseek-r1:1.5b";
   // Drop keys that no longer exist in defaults (removed fields)
   for (const key of Object.keys(merged)) {
     if (!(key in defaults)) delete merged[key];

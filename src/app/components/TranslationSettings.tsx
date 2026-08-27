@@ -205,14 +205,13 @@ const ServiceSettingsForm = ({ service }: { service: string }) => {
   const getUrlPlaceholder = (serviceValue: string) => {
     switch (serviceValue) {
       case "llm":
+        return `${tCommon("example")}: http://127.0.0.1:11434/v1/chat/completions`;
       case "translategemma":
       case "milmmt":
         // All three URL-primary self-hosted services share the LM Studio
-        // default — 1234 is easier to remember than 11434 (Ollama) and LM
-        // Studio runs general LLMs and the MT weights equally. Endpoint chips
-        // cover the other local runtimes; Custom also lists Ollama, the two MT
-        // services deliberately don't (Ollama still applies the Modelfile
-        // template on /v1/completions — see RAW_PROMPT_RUNTIME_ENDPOINTS).
+        // default. Endpoint chips cover the other local runtimes; these two MT
+        // services deliberately don't list Ollama (it still applies the
+        // Modelfile template on /v1/completions — see RAW_PROMPT_RUNTIME_ENDPOINTS).
         return `${tCommon("example")}: http://127.0.0.1:1234/v1/chat/completions`;
       case "nvidia":
         return `${tCommon("example")}: https://integrate.api.nvidia.com/v1/chat/completions`;

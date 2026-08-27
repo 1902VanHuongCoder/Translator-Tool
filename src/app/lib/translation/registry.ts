@@ -9,7 +9,7 @@ import type { ReasoningEffort, ThinkingDirective, TranslationConfig, Translation
 // 纯 URL 工具,放在零依赖的 services/shared 里 —— 端点解析(拼 ?endpoint=)与
 // 这里的分类必须用【同一个】规范化,否则界面判成官方、线上却因大小写/尾斜杠
 // 被中转 allowlist 精确匹配拒掉(exact match)。
-import { canonicalEndpoint, completeClaudeUrl, completeOpenAICompatUrl, relayUrl, usesBuiltinRelay } from "./services/shared";
+import { canonicalEndpoint, completeClaudeUrl, completeOpenAICompatUrl, isLoopbackEndpoint, relayUrl, usesBuiltinRelay } from "./services/shared";
 
 export type ServiceCategory = "machine-translation" | "llm" | "aggregator";
 
@@ -1410,7 +1410,7 @@ export const PROVIDERS = {
     // path is the entry point for local Ollama/LM Studio users — small models
     // (<14B) commonly drop lines or scramble structure in long batches.
     // Power users with bigger local models can raise it in Advanced Settings.
-    defaults: { url: "", apiKey: "", model: "", temperature: 0.7, maxTokens: 0, sendSystemPrompt: true, batchSize: 10, contextBatchSize: 1, contextWindow: 30 },
+    defaults: { url: "", apiKey: "", model: "deepseek-r1:1.5b", temperature: 0.7, maxTokens: 0, sendSystemPrompt: true, batchSize: 10, contextBatchSize: 1, contextWindow: 30 },
     // 每个芯片背后是一个独立产品，所以各带各的 docs —— provider 级的一条链接
     // 在这里没有意义（"Custom" 没有文档），而这条路恰恰最需要文档:用户得先照着
     // 上游的说明把服务跑起来、把地址和模型名弄对。链接一律写最终落点(2026-08-21
@@ -2068,7 +2068,7 @@ export const classifyEndpointUrl = (service: string, url: string | undefined): E
  * 「是不是官方地址」直接问 classifyEndpointUrl —— 与界面同一个判据,不重算。
  */
 export const relayWouldServe = (service: string, opts: { url?: string; relayBase?: string }): boolean =>
-  !usesBuiltinRelay(opts.relayBase) || classifyEndpointUrl(service, opts.url).kind !== "custom";
+  !isLoopbackEndpoint(opts.url) && (!usesBuiltinRelay(opts.relayBase) || classifyEndpointUrl(service, opts.url).kind !== "custom");
 
 /**
  * THE wire-endpoint resolution —— 所有走中转开关的服务(openai-compat 工厂 +

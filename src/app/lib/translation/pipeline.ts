@@ -38,6 +38,7 @@ import { getRetryConfig, rateLimitGate, abortableSleep, isAuthError, isRetryable
 import { URL_IS_PRIMARY_CRED } from "./registry";
 import { extractTranslatedLinesWithNumbers, findAdjacentDuplicateSlots, buildContextPrompt, isBlankLine, prefillFromLineCache } from "./contextTranslation";
 import { isAbortError, formatErrorWithCause } from "@/app/utils/errorUtils";
+import { isLoopbackEndpoint } from "./services/shared";
 
 // Caps context window padding around a batch — without this, a large
 // contextWindow would request hundreds of neighbor lines per batch and blow
@@ -407,7 +408,10 @@ const translateSingle = async (text: string, cacheSuffix: string, config: Pipeli
   }
 
   const retryCount = config.retryCount ?? DEFAULT_RETRY_COUNT;
-  const requestTimeoutSec = config.requestTimeoutSec ?? DEFAULT_RETRY_TIMEOUT;
+  const configuredTimeoutSec = config.requestTimeoutSec ?? DEFAULT_RETRY_TIMEOUT;
+  // Local reasoning models can spend several minutes before emitting content.
+  // Keep legacy 180-second settings from aborting Ollama requests prematurely.
+  const requestTimeoutSec = isLoopbackEndpoint(config.url) ? Math.max(configuredTimeoutSec, 300) : configuredTimeoutSec;
   const userRetryConfig: UserRetryConfig = { retryCount, requestTimeoutSec };
   const retryConfig = getRetryConfig(config.translationMethod, userRetryConfig);
   const timeoutMs = requestTimeoutSec * 1000;
@@ -999,7 +1003,7 @@ const translateWithContext = async (
   //     30, Gemini generous). Free-tier users hitting 429 get caught by
   //     pRetry + auto-retry.
   //   - Custom LLM (Ollama local): 1 — Ollama runs inference single-threaded
-  //     by default, >1 concurrent would queue on the server and our 180s
+  //     by default, >1 concurrent would queue on the server and our 300s
   //     requestTimeoutSec would fire on queued requests before they run.
   // Power users with proper paid tiers can raise contextBatchSize in
   // Advanced Settings for faster throughput.

@@ -217,6 +217,37 @@ export const parseReviewTexts = (text: string, format: string): string[] => {
   return filterSubLines(splitTextIntoLines(text), "lrc").contentLines;
 };
 
+const EXCHANGE_MARKER = /^@@@CUE:(\d+)@@@\s*$/;
+
+export const createTranslationTemplate = (text: string, format: string): string => {
+  return parseReviewTexts(text, format)
+    .map((cueText, index) => `@@@CUE:${index + 1}@@@\n${cueText}`)
+    .join("\n\n");
+};
+
+export const parseTranslationTemplate = (text: string): Map<number, string> | null => {
+  const entries = new Map<number, string>();
+  let currentIndex: number | null = null;
+  let currentLines: string[] = [];
+  const commit = () => {
+    if (currentIndex !== null) entries.set(currentIndex, currentLines.join("\n").trim());
+  };
+
+  for (const line of splitTextIntoLines(text)) {
+    const marker = line.trim().match(EXCHANGE_MARKER);
+    if (marker) {
+      commit();
+      currentIndex = Number(marker[1]);
+      currentLines = [];
+    } else if (currentIndex !== null) {
+      currentLines.push(line);
+    }
+  }
+  commit();
+
+  return entries.size > 0 && [...entries.keys()].every((index) => Number.isInteger(index) && index > 0) ? entries : null;
+};
+
 /**
  * 对照校对写回。timed 格式走 replaceCueText;lrc 保留行首时间标签前缀、
  * 替换其后内容(真实换行压成空格 —— LRC 无多行 cue)。index 与

@@ -256,6 +256,16 @@ export const usesBuiltinRelay = (base?: string): boolean => {
   return !trimmed || canonicalEndpoint(trimmed) === canonicalEndpoint(LLM_RELAY_BASE);
 };
 
+export const isLoopbackEndpoint = (url: string | undefined): boolean => {
+  if (!url) return false;
+  try {
+    const hostname = new URL(url).hostname.toLowerCase();
+    return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1" || hostname === "[::1]";
+  } catch {
+    return false;
+  }
+};
+
 // ============================================================================
 // Relay-hint error markers
 // ============================================================================
