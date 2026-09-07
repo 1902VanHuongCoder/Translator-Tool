@@ -1,13 +1,15 @@
 "use client";
 
 import React from "react";
-import { VideoCameraOutlined } from "@ant-design/icons";
+import { CheckCircleOutlined, VideoCameraOutlined } from "@ant-design/icons";
+import { Tabs } from "antd";
 import SubtitleTranslator from "./SubtitleTranslator";
 import { useTranslations, useLocale } from "next-intl";
 import { TranslationProvider } from "@/app/components/TranslationContext";
 import { getDocUrl } from "@/app/utils";
 import ToolPage from "@/app/components/styled/ToolPage";
 import ApiSettingsDrawer from "@/app/components/ApiSettingsDrawer";
+import SubtitleQualityCheck from "./SubtitleQualityCheck";
 
 const ClientPage = () => {
   const tSubtitle = useTranslations("SubtitleTranslator");
@@ -17,7 +19,23 @@ const ClientPage = () => {
   return (
     <TranslationProvider>
       <ToolPage icon={<VideoCameraOutlined />} toolKey="subtitleTranslator" description={tSubtitle("clientDescription")} guideUrl={userGuideUrl}>
-        <SubtitleTranslator />
+        <Tabs
+          defaultActiveKey="translator"
+          items={[
+            {
+              key: "translator",
+              label: "Subtitle Translator",
+              icon: <VideoCameraOutlined />,
+              children: <SubtitleTranslator />,
+            },
+            {
+              key: "quality-check",
+              label: "Quality Check",
+              icon: <CheckCircleOutlined />,
+              children: <SubtitleQualityCheck />,
+            },
+          ]}
+        />
       </ToolPage>
       <ApiSettingsDrawer />
     </TranslationProvider>

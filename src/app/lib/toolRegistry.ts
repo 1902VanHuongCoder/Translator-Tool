@@ -70,8 +70,8 @@ export type ApplicationCategory =
  * same group share a category tab. Order of values defines the default tab
  * order in the UI.
  */
-export type ToolGroup = "translate" | "textParser" | "jsonParser" | "dataParser";
-export const TOOL_GROUPS = ["translate", "textParser", "jsonParser", "dataParser"] as const satisfies readonly ToolGroup[];
+export type ToolGroup = "translate";
+export const TOOL_GROUPS = ["translate"] as const satisfies readonly ToolGroup[];
 
 type ToolEntry = {
   /** URL slug under /{locale}/ */
@@ -93,24 +93,6 @@ type ToolEntry = {
  */
 export const TOOL_REGISTRY = {
   subtitleTranslator:   { path: "subtitle-translator",    category: "MultimediaApplication", group: "translate",  namespaces: ["SubtitleTranslator", "TranslationSettings", "TranslationGlossary"] },
-  mdTranslator:         { path: "md-translator",          category: "BusinessApplication",   group: "translate",  namespaces: ["MDTranslator", "TranslationSettings", "TranslationGlossary"] },
-  jsonTranslate:        { path: "json-translate",         category: "DeveloperApplication",  group: "translate",  namespaces: ["JSON", "TranslationSettings", "TranslationGlossary"] },
-  textSplitter:         { path: "text-splitter",          category: "UtilitiesApplication",  group: "textParser", namespaces: ["TextSplitter"] },
-  textJoiner:           { path: "text-joiner",            category: "UtilitiesApplication",  group: "textParser", namespaces: ["TextJoiner"] },
-  textDiff:             { path: "text-diff",              category: "DeveloperApplication",  group: "textParser", namespaces: ["TextDiff"] },
-  chineseConversion:    { path: "chinese-conversion",     category: "UtilitiesApplication",  group: "textParser", namespaces: ["ChineseConversion", "ProtectedRuleManager"] },
-  novelProcessor:       { path: "novel-processor",        category: "UtilitiesApplication",  group: "textParser", namespaces: ["NovelProcessor", "ProtectedRuleManager"] },
-  textToolbox:          { path: "text-toolbox",           category: "DeveloperApplication",  group: "textParser", namespaces: ["TextToolbox"] },
-  dataBatch:            { path: "data-batch",             category: "UtilitiesApplication",  group: "textParser", namespaces: ["DataBatch"] },
-  jsonValueExtractor:   { path: "json-value-extractor",   category: "DeveloperApplication",  group: "jsonParser", namespaces: ["JSON", "JSONValueExtractor"] },
-  jsonNodeEdit:         { path: "json-node-edit",         category: "DeveloperApplication",  group: "jsonParser", namespaces: ["JSON", "JSONNodeEdit"] },
-  jsonValueTransformer: { path: "json-value-transformer", category: "DeveloperApplication",  group: "jsonParser", namespaces: ["JSON", "JSONValueTransformer"] },
-  jsonValueSwapper:     { path: "json-value-swapper",     category: "DeveloperApplication",  group: "jsonParser", namespaces: ["JSON", "JSONValueSwapper"] },
-  jsonNodeInserter:     { path: "json-node-inserter",     category: "DeveloperApplication",  group: "jsonParser", namespaces: ["JSON", "JSONNodeInserter"] },
-  jsonSortClassify:     { path: "json-sort-classify",     category: "DeveloperApplication",  group: "jsonParser", namespaces: ["JSON", "JSONSortClassify"] },
-  jsonMatchUpdate:      { path: "json-match-update",      category: "DeveloperApplication",  group: "jsonParser", namespaces: ["JSON", "JSONMatchUpdate"] },
-  dataParserFlare:      { path: "data-parser/flare",      category: "DeveloperApplication",  group: "dataParser", namespaces: ["JSON", "Flare"] },
-  dataParserImgPrompt:  { path: "data-parser/img-prompt", category: "DesignApplication",     group: "dataParser", namespaces: ["JSON", "ImgPrompt"] },
 } as const satisfies Record<string, ToolEntry>;
 
 export type ToolKey = keyof typeof TOOL_REGISTRY;
@@ -133,25 +115,7 @@ export const TOOL_KEYS = Object.keys(TOOL_REGISTRY) as ToolKey[];
  * users discover adjacent tools.
  */
 export const RELATED_TOOLS: Record<ToolKey, ToolKey[]> = {
-  subtitleTranslator:   ["mdTranslator", "jsonTranslate", "textSplitter"],
-  mdTranslator:         ["subtitleTranslator", "jsonTranslate", "textSplitter"],
-  jsonTranslate:        ["mdTranslator", "subtitleTranslator", "jsonValueExtractor"],
-  textSplitter:         ["textToolbox", "novelProcessor", "textJoiner"],
-  chineseConversion:    ["novelProcessor", "textToolbox", "textSplitter"],
-  novelProcessor:       ["textSplitter", "textToolbox", "chineseConversion"],
-  textToolbox:          ["textSplitter", "novelProcessor", "chineseConversion"],
-  textDiff:             ["textToolbox", "dataBatch", "textSplitter"],
-  dataBatch:            ["textToolbox", "jsonValueExtractor", "jsonTranslate"],
-  textJoiner:           ["textSplitter", "dataBatch", "textToolbox"],
-  jsonValueExtractor:   ["jsonValueTransformer", "jsonNodeEdit", "jsonSortClassify"],
-  jsonNodeEdit:         ["jsonNodeInserter", "jsonValueTransformer", "jsonValueSwapper"],
-  jsonValueTransformer: ["jsonValueExtractor", "jsonValueSwapper", "jsonMatchUpdate"],
-  jsonValueSwapper:     ["jsonValueTransformer", "jsonNodeEdit", "jsonMatchUpdate"],
-  jsonNodeInserter:     ["jsonNodeEdit", "jsonValueSwapper", "jsonSortClassify"],
-  jsonSortClassify:     ["jsonValueExtractor", "jsonMatchUpdate", "jsonNodeEdit"],
-  jsonMatchUpdate:      ["jsonValueTransformer", "jsonValueSwapper", "jsonValueExtractor"],
-  dataParserFlare:      ["dataParserImgPrompt", "jsonValueExtractor", "dataBatch"],
-  dataParserImgPrompt:  ["dataParserFlare", "jsonTranslate", "dataBatch"],
+  subtitleTranslator: [],
 };
 
 /** Return the curated related-tool keys for a tool. Order is meaningful (declaration order = display order). */
