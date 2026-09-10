@@ -2,11 +2,10 @@
 
 import React from "react";
 import { Typography, theme } from "antd";
-import { QuestionCircleOutlined } from "@ant-design/icons";
 import { useTranslations } from "next-intl";
 import { TOOL_KEYS, groupOf, type ToolKey } from "@/app/lib/toolRegistry";
 
-const { Title, Paragraph, Text, Link } = Typography;
+const { Title, Paragraph, Text } = Typography;
 
 interface ToolPageProps {
   /** Icon rendered before the title. */
@@ -17,9 +16,6 @@ interface ToolPageProps {
   toolKey: string;
   /** Already-localized description body. Falls back to nothing when unset. */
   description?: React.ReactNode;
-  /** External user-guide URL. When provided, renders a "User Guide" link
-   *  before the description text. */
-  guideUrl?: string;
   /** Body — the actual tool surface. */
   children: React.ReactNode;
 }
@@ -33,7 +29,7 @@ interface ToolPageProps {
  * Reads the H1 from `tools.<toolKey>.title` so the nav short name, the
  * Schema.org `name`, and the in-tool H1 stay in lock-step.
  */
-const ToolPage = ({ icon, toolKey, description, guideUrl, children }: ToolPageProps) => {
+const ToolPage = ({ icon, toolKey, description, children }: ToolPageProps) => {
   const t = useTranslations("common");
   const tTools = useTranslations("tools");
   const tNav = useTranslations("navigation");
@@ -101,10 +97,7 @@ const ToolPage = ({ icon, toolKey, description, guideUrl, children }: ToolPagePr
             {crumb.slice(2)}
           </Text>
         )}
-        {/* 标题行：标题左、页面操作右 —— 工具页的通行形状(GitHub / Linear /
-            Stripe / Vercel 都是这个)。「使用说明」是这一页唯一的页面级操作,
-            放在【和 H1 同一行】的右端;它此前挂在上面那条装饰性序号行上,
-            比 H1 还高 32px,那才是它显得没着落的原因。 */}
+        {/* 标题行：标题左、页面操作右。 */}
         <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", columnGap: 24, rowGap: 4 }}>
           <Title
             level={1}
@@ -127,17 +120,6 @@ const ToolPage = ({ icon, toolKey, description, guideUrl, children }: ToolPagePr
             )}
             <span>{tTools(`${toolKey}.title`)}</span>
           </Title>
-          {guideUrl && (
-            // 12px 的链接文字本身只有 19px 高。加纵向内边距把可点区域撑到
-            // ≥24px(WCAG 2.2 SC 2.5.8 的下限),负外边距抵消掉,视觉位置不变。
-            <Link
-              href={guideUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ fontSize: token.fontSizeSM, whiteSpace: "nowrap", display: "inline-flex", alignItems: "center", gap: 4, padding: "5px 6px", margin: "-5px -6px" }}>
-              <QuestionCircleOutlined aria-hidden /> {t("userGuide")}
-            </Link>
-          )}
         </div>
         <div aria-hidden style={{ height: 2, width: 40, background: "var(--accent)", marginTop: token.marginXS, marginBottom: token.marginSM }} />
         {/* antd 只有在 children 是纯字符串时才会走 JS 量测、渲染「展开」链接;

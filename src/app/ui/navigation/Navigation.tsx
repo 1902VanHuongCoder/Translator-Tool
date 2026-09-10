@@ -1,22 +1,16 @@
 "use client";
 import React, { memo, useSyncExternalStore } from "react";
 import { usePathname } from "next/navigation";
-import { Layout, Menu, Space, Button, Dropdown, Flex } from "antd";
-import { GithubOutlined, QqOutlined, DiscordOutlined, SunOutlined, MoonOutlined, TeamOutlined, SendOutlined } from "@ant-design/icons";
+import { Layout, Menu, Space, Button, Flex } from "antd";
+import { SunOutlined, MoonOutlined } from "@ant-design/icons";
 import { useTheme } from "next-themes";
-import { useLocale } from "next-intl";
 import { useAppMenu } from "@/app/components/projects";
-import { isChineseLocale } from "@/app/utils";
-import { SOCIAL_LINKS } from "./config";
 import { LanguageSelector } from "./LanguageSelector";
 
 const { Header } = Layout;
 
 // 图标样式
 const iconStyle = { fontSize: 18 };
-
-// ============ 项目特定配置 ============
-const DEFAULT_GITHUB = "https://github.com/rockbenben/subtitle-translator";
 
 // ============ 动态组件 ============
 
@@ -33,8 +27,6 @@ export function Navigation() {
   const menuItems = useAppMenu();
   const pathname = usePathname();
   const { resolvedTheme, setTheme } = useTheme();
-  const locale = useLocale();
-
   // useSyncExternalStore for hydration-safe client detection
   const mounted = useSyncExternalStore(
     () => () => {},
@@ -42,7 +34,6 @@ export function Navigation() {
     () => false,
   );
 
-  const isChinese = isChineseLocale(locale);
   const currentMenuKey = getCurrentMenuKey(pathname);
 
   const handleThemeToggle = () => {
@@ -58,51 +49,6 @@ export function Navigation() {
         <Menu selectedKeys={[currentMenuKey]} mode="horizontal" items={menuItems} style={{ flex: 1, minWidth: 0, border: "none", background: "transparent" }} />
         <Space size="middle">
           <LanguageSelector />
-
-          <Dropdown
-            trigger={["click"]}
-            placement="bottomRight"
-            menu={{
-              items: [
-                ...(isChinese
-                  ? [
-                      {
-                        key: "qq",
-                        icon: <QqOutlined />,
-                        label: (
-                          <a href={SOCIAL_LINKS.qq} target="_blank" rel="noopener noreferrer nofollow">
-                            QQ 群
-                          </a>
-                        ),
-                      },
-                    ]
-                  : []),
-                {
-                  key: "discord",
-                  icon: <DiscordOutlined />,
-                  label: (
-                    <a href={SOCIAL_LINKS.discord} target="_blank" rel="noopener noreferrer nofollow">
-                      Discord
-                    </a>
-                  ),
-                },
-                {
-                  key: "telegram",
-                  icon: <SendOutlined />,
-                  label: (
-                    <a href={SOCIAL_LINKS.telegram} target="_blank" rel="noopener noreferrer nofollow">
-                      Telegram
-                    </a>
-                  ),
-                },
-              ],
-            }}>
-            <Button type="text" icon={<TeamOutlined style={iconStyle} />} aria-label="Community links" />
-          </Dropdown>
-
-          <a href={DEFAULT_GITHUB} target="_blank" rel="noopener noreferrer">
-            <Button type="text" icon={<GithubOutlined style={iconStyle} />} aria-label="View on GitHub" />
-          </a>
 
           <Button type="text" icon={themeIcon} onClick={handleThemeToggle} aria-label="Toggle theme" />
         </Space>
