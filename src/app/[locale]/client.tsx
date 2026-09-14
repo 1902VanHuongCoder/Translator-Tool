@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { CheckCircleOutlined, VideoCameraOutlined } from "@ant-design/icons";
+import { CheckCircleOutlined, FileAddOutlined, VideoCameraOutlined } from "@ant-design/icons";
 import { Tabs } from "antd";
 import SubtitleTranslator from "./SubtitleTranslator";
 import { useTranslations } from "next-intl";
@@ -9,6 +9,7 @@ import { TranslationProvider } from "@/app/components/TranslationContext";
 import ToolPage from "@/app/components/styled/ToolPage";
 import ApiSettingsDrawer from "@/app/components/ApiSettingsDrawer";
 import SubtitleQualityCheck from "./SubtitleQualityCheck";
+import ThaiSubtitleTemplate from "./ThaiSubtitleTemplate";
 
 const ClientPage = () => {
   const tSubtitle = useTranslations("SubtitleTranslator");
@@ -29,6 +30,12 @@ const ClientPage = () => {
               label: "Quality Check",
               icon: <CheckCircleOutlined />,
               children: <SubtitleQualityCheck />,
+            },
+            {
+              key: "thai-subtitle-template",
+              label: "Thai Subtitle File",
+              icon: <FileAddOutlined />,
+              children: <ThaiSubtitleTemplate />,
             },
           ]}
         />
