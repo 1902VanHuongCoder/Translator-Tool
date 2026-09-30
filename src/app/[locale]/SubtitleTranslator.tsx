@@ -602,8 +602,8 @@ const SubtitleTranslator = () => {
   return (
     <Spin spinning={isFileProcessing} description={t("pleaseWait")} size="large">
       <Row gutter={[24, 24]}>
-        {/* Left Column: Upload and Main Actions */}
-        <Col xs={24} lg={14} xl={15}>
+        {/* Left Column: Upload and Main Actions (Expanded to full width) */}
+        <Col span={24}>
           <Card
             title={
               <Space>
@@ -722,7 +722,8 @@ const SubtitleTranslator = () => {
           </Card>
         </Col>
 
-        {/* Right Column: Settings and Configuration */}
+        {/* Right Column: Settings and Configuration (Hidden as requested) */}
+        {false && (
         <Col xs={24} lg={10} xl={9}>
           <Card
             title={<Space><SettingOutlined /> {t("configuration")}</Space>}
@@ -917,6 +918,7 @@ const SubtitleTranslator = () => {
             />
           </Card>
         </Col>
+        )}
       </Row>
 
       {/* Partial-failure panel: auto-retried once, still-failed lines kept originals */}
